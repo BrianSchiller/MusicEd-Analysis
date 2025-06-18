@@ -1,3 +1,6 @@
 *.pyc   
 __pycache__/
 plots/
+*.csv
+!data/smakman_clusters.csv
+!data/data.csv
