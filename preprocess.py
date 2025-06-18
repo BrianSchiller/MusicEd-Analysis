@@ -1,7 +1,12 @@
 import pandas as pd
+import os
 
 # Use the correct file path and delimiter
 file_path = 'data.csv'  # or 'data.tsv' if you want to rename
+
+# Create folders if they do not exist
+for folder in ['plots', 'results', 'data']:
+    os.makedirs(folder, exist_ok=True)
 
 # Try reading with utf-16 and tab separator, skipping the second row (labels)
 df = pd.read_csv(file_path, sep='\t', encoding='utf-16', skiprows=[1])
@@ -46,7 +51,7 @@ summary = df[sd_columns].describe(include='all')
 print(summary)
 
 # Export the summary table to a CSV file
-summary.to_csv('SD_columns_summary.csv')
+summary.to_csv('data/SD_columns_summary.csv')
 
-df.to_csv('processed_data.csv', index=False)
+df.to_csv('data/processed_data.csv', index=False)
 

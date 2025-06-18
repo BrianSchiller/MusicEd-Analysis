@@ -7,7 +7,7 @@ import statsmodels.api as sm
 from statsmodels.formula.api import ols
 
 # Load processed data
-df = pd.read_csv('processed_data.csv', sep=',', encoding='utf-8')
+df = pd.read_csv('data/processed_data.csv', sep=',', encoding='utf-8')
 
 # Factor A: Early musical training
 df['early_training'] = df['SD05'].map({1: 'Yes', 2: 'No'})
@@ -33,19 +33,46 @@ for scale, items in scales.items():
 
 subscale_names = list(scales.keys())
 
-# Check sample size per group combination
-print("\nSample size per group combination:")
-print(df.groupby(['early_training', 'robot_exp_group']).size())
 
-# MANOVA formula
+
+### Export descriptive statistics
+desc_stats = df.groupby(['early_training', 'robot_exp_group'])[subscale_names].agg(['mean', 'std'])
+counts = df.groupby(['early_training', 'robot_exp_group']).size().rename('count')
+desc_stats_with_count = pd.concat([counts, desc_stats], axis=1)
+desc_stats_with_count.to_csv('results/rq3_group_descriptives.csv')
+
+
+### MANOVA
 dv_formula = ' + '.join(subscale_names)
 formula = f'{dv_formula} ~ early_training * robot_exp_group'
 
 print("\nTwo-Way MANOVA results:")
 maov = MANOVA.from_formula(formula, data=df)
-print(maov.mv_test())
+manova_results = maov.mv_test()
 
-print(pd.crosstab(df['early_training'], df['robot_exp_group']))
+### Export Wilks' Lambda tables 
+def extract_multivariate_tests(manova_results, effect_names):
+    rows = []
+    for effect in effect_names:
+        stat_table = manova_results.results[effect]['stat']
+        for test_name, row in stat_table.iterrows():
+            row_out = row.copy()
+            row_out['Effect'] = effect
+            row_out['Test'] = test_name
+            rows.append(row_out)
+    return pd.DataFrame(rows)
+
+effect_names = [
+    'Intercept',
+    'early_training',
+    'robot_exp_group',
+    'early_training:robot_exp_group'
+]
+
+multivariate_tests_df = extract_multivariate_tests(manova_results, effect_names)
+multivariate_tests_df.to_csv('results/rq3_manova_multivariate_tests.csv', index=False)
+
+print(multivariate_tests_df)
 
 
 # Optional: Post-hoc ANOVAs for each subscale if significant

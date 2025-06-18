@@ -10,7 +10,7 @@ from statsmodels.formula.api import ols
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 # Load processed data
-df = pd.read_csv('processed_data.csv', sep=',', encoding='utf-8')
+df = pd.read_csv('data/processed_data.csv', sep=',', encoding='utf-8')
 group_col = 'robot_exp_group'
 
 # Define prior social robot experience group
@@ -38,13 +38,14 @@ subscale_names = list(scales.keys())
 groups = df[group_col].dropna().unique()
 
 
-# Means and SDs
-print("Means and SDs by robot experience group:")
-for group in groups:
-    print(f"\nGroup: {group}")
-    print(df[df[group_col] == group][subscale_names].agg(['mean', 'std']))
+### Export descriptive statistics (mean, std) for each group and subscale, and count once at the beginning
+desc_stats = df.groupby(group_col)[subscale_names].agg(['mean', 'std'])
+counts = df.groupby(group_col).size().rename('count')
+desc_stats_with_count = pd.concat([counts, desc_stats], axis=1)
+desc_stats_with_count.to_csv('results/rq2_group_descriptives.csv')
 
-# Assumption checks
+
+### Assumption checks
 print("\nShapiro-Wilk normality test for each subscale (by group):")
 for scale in subscale_names:
     for group in groups:
@@ -61,12 +62,31 @@ for scale in subscale_names:
         print(f"{scale}: W={stat:.3f}, p={p:.3f}")
 
 
-# MANOVA
+### Run MANOVA
 dv_formula = ' + '.join(subscale_names)
 formula = f'{dv_formula} ~ {group_col}'
 print("\nMANOVA results:")
 maov = MANOVA.from_formula(formula, data=df)
-print(maov.mv_test())
+manova_results = maov.mv_test()
+
+
+### Export Wilks' Lambda tables for intercept and robot_exp_group
+def extract_multivariate_tests(manova_results, effect_names):
+    rows = []
+    for effect in effect_names:
+        stat_table = manova_results.results[effect]['stat']
+        for test_name, row in stat_table.iterrows():
+            row_out = row.copy()
+            row_out['Effect'] = effect
+            row_out['Test'] = test_name
+            rows.append(row_out)
+    return pd.DataFrame(rows)
+
+effect_names = ['Intercept', group_col]
+multivariate_tests_df = extract_multivariate_tests(manova_results, effect_names)
+multivariate_tests_df.to_csv('results/rq2_manova_multivariate_tests.csv', index=False)
+
+print(multivariate_tests_df)
 
 
 
@@ -84,7 +104,7 @@ print(maov.mv_test())
 
 
 
-# Visualization
+### Visualization
 df_melt = df.melt(id_vars=[group_col], value_vars=subscale_names, var_name='Subscale', value_name='Score')
 plt.figure(figsize=(10, 6))
 sns.barplot(data=df_melt, x='Subscale', y='Score', hue=group_col, ci='sd')
