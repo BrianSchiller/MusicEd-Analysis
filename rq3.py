@@ -1,0 +1,57 @@
+import pandas as pd
+import numpy as np
+from statsmodels.multivariate.manova import MANOVA
+from scipy.stats import shapiro, levene
+from const import scales
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+# Load processed data
+df = pd.read_csv('processed_data.csv', sep=',', encoding='utf-8')
+
+# Factor A: Early musical training
+df['early_training'] = df['SD05'].map({1: 'Yes', 2: 'No'})
+
+# Factor B: Prior social robot experience (grouped)
+def exp_group(val):
+    if val in [1, 2]:
+        return 'None'
+    elif val in [3, 4, 5, 6]:
+        return 'Any'
+    else:
+        return np.nan
+
+df['robot_exp_group'] = df['RS01_01'].apply(exp_group)
+
+# Calculate subscale means
+for scale, items in scales.items():
+    valid_items = [col for col in items if col in df.columns]
+    if not valid_items:
+        print(f"Warning: No valid items found for scale '{scale}'")
+        continue
+    df[scale] = df[valid_items].mean(axis=1)
+
+subscale_names = list(scales.keys())
+
+# Check sample size per group combination
+print("\nSample size per group combination:")
+print(df.groupby(['early_training', 'robot_exp_group']).size())
+
+# MANOVA formula
+dv_formula = ' + '.join(subscale_names)
+formula = f'{dv_formula} ~ early_training * robot_exp_group'
+
+print("\nTwo-Way MANOVA results:")
+maov = MANOVA.from_formula(formula, data=df)
+print(maov.mv_test())
+
+print(pd.crosstab(df['early_training'], df['robot_exp_group']))
+
+
+# Optional: Post-hoc ANOVAs for each subscale if significant
+# print("\nPost-hoc ANOVAs for each subscale:")
+# for scale in subscale_names:
+#     model = ols(f'{scale} ~ early_training * robot_exp_group', data=df).fit()
+#     anova_table = sm.stats.anova_lm(model, typ=2)
+#     print(f"\n{scale} ANOVA:")
+#     print(anova_table)

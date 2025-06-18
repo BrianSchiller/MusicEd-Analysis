@@ -17,10 +17,8 @@ group_col = 'robot_exp_group'
 def exp_group(val):
     if val in [1, 2]:
         return 'None'
-    elif val in [3, 4]:
-        return 'Moderate'
-    elif val in [5, 6]:
-        return 'High'
+    elif val in [3, 4, 5, 6]:
+        return 'Any'
     else:
         return np.nan
 

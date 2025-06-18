@@ -18,7 +18,7 @@ scales = {
     "data_sharing_third_parties": [
         "AT02_22", "AT02_20"
     ],
-    "check": [
-        "AT02_46", "AT02_47"
-    ]
+    # "check": [
+    #     "AT02_46", "AT02_47"
+    # ]
 }
