@@ -2,13 +2,14 @@ import pandas as pd
 import os
 
 # Use the correct file path and delimiter
-file_path = 'data/data.csv'  # or 'data.tsv' if you want to rename
+file_path = 'data/data.csv' 
 
 # Create folders if they do not exist
 for folder in ['plots', 'results', 'data']:
     os.makedirs(folder, exist_ok=True)
 
-# Try reading with utf-16 and tab separator, skipping the second row (labels)
+
+# Read the dataset
 df = pd.read_csv(file_path, sep='\t', encoding='utf-16', skiprows=[1])
 
 # Show first few rows
@@ -16,6 +17,9 @@ print("First few rows of the dataset:")
 print(df.head(10))
 print(df.shape)
 
+
+
+### Data Cleaning and Preprocessing
 # 1. Remove all participants that did not complete the survey
 df = df[df['FINISHED'] == 1]
 
@@ -35,6 +39,8 @@ print("After removing participants who did not pass attention checks:")
 print(df.shape)
 
 
+
+### Labeling and Feature Engineering
 # Add early_training column (1 = Yes, 2 = No)
 df['early_training'] = df.apply(
     lambda row: 'Yes' if (row['SD05'] == 1 and pd.notna(row['SD06_01']) and row['SD06_01'] <= 11) else 'No',
@@ -52,19 +58,11 @@ def exp_group(val):
 
 df['robot_exp_group'] = df['RS01_01'].apply(exp_group)
 
+df.to_csv('data/processed_data.csv', index=False)
 
 
-# # Did you receive musical education?
-# print(df['SD05'].value_counts(dropna=False))
 
-
-print("What kind of music education did you receive?")
-print(df['SD08'].value_counts(dropna=False))
-
-# print("Where did you receive your musical education?")
-# print(df['SD09'].value_counts(dropna=False))
-
-
+### Social Demographics
 # Show all columns that start with 'SD' and aggregate their value counts
 sd_columns = [col for col in df.columns if col.startswith('SD')]
 # print("\nAggregated value counts for all SD__ columns:")
@@ -79,6 +77,3 @@ print(summary)
 
 # Export the summary table to a CSV file
 summary.to_csv('data/SD_columns_summary.csv')
-
-df.to_csv('data/processed_data.csv', index=False)
-

@@ -83,9 +83,6 @@ effect_names = ['Intercept', 'early_training']
 multivariate_tests_df = extract_multivariate_tests(manova_results, effect_names)
 multivariate_tests_df.to_csv('results/rq1_manova_multivariate_tests.csv', index=False)
 
-print(multivariate_tests_df)
-
-
 
 ### Calczulate effect sizes (eta squared)
 for scale in subscale_names:
