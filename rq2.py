@@ -13,18 +13,6 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 df = pd.read_csv('data/processed_data.csv', sep=',', encoding='utf-8')
 group_col = 'robot_exp_group'
 
-# Define prior social robot experience group
-def exp_group(val):
-    if val in [1, 2]:
-        return 'None'
-    elif val in [3, 4, 5, 6]:
-        return 'Any'
-    else:
-        return np.nan
-
-df[group_col] = df['RS01_01'].apply(exp_group)
-print(df[group_col].value_counts(dropna=False))
-
 
 # Calculate subscale means
 for scale, items in scales.items():
@@ -57,10 +45,13 @@ for scale in subscale_names:
 print("\nLevene's test for homogeneity of variances:")
 for scale in subscale_names:
     vals = [df[df[group_col] == group][scale].dropna() for group in groups]
-    if all(len(v) > 3 for v in vals):
-        stat, p = levene(*vals)
+    # Only keep groups with at least one value
+    non_empty = [v for v in vals if len(v) > 0]
+    if len(non_empty) > 1 and all(len(v) > 3 for v in non_empty):
+        stat, p = levene(*non_empty)
         print(f"{scale}: W={stat:.3f}, p={p:.3f}")
-
+    else:
+        print(f"{scale}: Not enough groups with data for Levene's test.")
 
 ### Run MANOVA
 dv_formula = ' + '.join(subscale_names)

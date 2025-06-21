@@ -10,9 +10,6 @@ import seaborn as sns
 df = pd.read_csv('data/processed_data.csv', sep=',', encoding='utf-8')
 group_col = 'early_training'
 
-# Define early musical training variable (adjust if needed)
-df[group_col] = df['SD05'].map({1: 'Yes', 2: 'No'}) 
-
 
 # Calculate subscale means
 for scale, items in scales.items():

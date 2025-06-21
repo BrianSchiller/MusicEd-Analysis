@@ -9,20 +9,6 @@ from statsmodels.formula.api import ols
 # Load processed data
 df = pd.read_csv('data/processed_data.csv', sep=',', encoding='utf-8')
 
-# Factor A: Early musical training
-df['early_training'] = df['SD05'].map({1: 'Yes', 2: 'No'})
-
-# Factor B: Prior social robot experience (grouped)
-def exp_group(val):
-    if val in [1, 2]:
-        return 'None'
-    elif val in [3, 4, 5, 6]:
-        return 'Any'
-    else:
-        return np.nan
-
-df['robot_exp_group'] = df['RS01_01'].apply(exp_group)
-
 # Calculate subscale means
 for scale, items in scales.items():
     valid_items = [col for col in items if col in df.columns]
