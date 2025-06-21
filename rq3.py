@@ -5,6 +5,8 @@ from scipy.stats import shapiro, levene
 from const import scales
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
+from statsmodels.stats.power import FTestAnovaPower
+
 
 # Load processed data
 df = pd.read_csv('data/processed_data.csv', sep=',', encoding='utf-8')
@@ -59,6 +61,27 @@ multivariate_tests_df = extract_multivariate_tests(manova_results, effect_names)
 multivariate_tests_df.to_csv('results/rq3_manova_multivariate_tests.csv', index=False)
 
 print(multivariate_tests_df)
+
+
+for scale in subscale_names:
+    model = ols(f'{scale} ~ C(early_training) * C(robot_exp_group)', data=df).fit()
+    aov = sm.stats.anova_lm(model, typ=2)
+    for effect in ['C(early_training)', 'C(robot_exp_group)', 'C(early_training):C(robot_exp_group)']:
+        ss_effect = aov.loc[effect, 'sum_sq']
+        ss_total = aov['sum_sq'].sum()
+        eta_sq = ss_effect / ss_total
+        print(f"{scale} {effect} partial eta squared: {eta_sq:.3f}")
+        effect_size = eta_sq ** 0.5  # Cohen's f
+        n_groups = aov.loc[effect, 'df'] + 1  # Number of groups for this effect
+        nobs = df.shape[0]
+        alpha = 0.05
+
+        # For interaction, n_groups can be large; for main effects, it's usually 2
+        try:
+            power = FTestAnovaPower().solve_power(effect_size=effect_size, nobs=nobs, alpha=alpha, k_groups=int(n_groups))
+            print(f"Power for {scale} {effect}: {power:.3f}")
+        except Exception as e:
+            print(f"Could not compute power for {scale} {effect}: {e}")
 
 
 # Optional: Post-hoc ANOVAs for each subscale if significant

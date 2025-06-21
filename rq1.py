@@ -5,6 +5,10 @@ from scipy.stats import shapiro, levene
 from const import scales
 import matplotlib.pyplot as plt
 import seaborn as sns
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+from statsmodels.stats.power import FTestAnovaPower
+
 
 # Load processed data
 df = pd.read_csv('data/processed_data.csv', sep=',', encoding='utf-8')
@@ -80,6 +84,25 @@ multivariate_tests_df = extract_multivariate_tests(manova_results, effect_names)
 multivariate_tests_df.to_csv('results/rq1_manova_multivariate_tests.csv', index=False)
 
 print(multivariate_tests_df)
+
+
+
+### Calczulate effect sizes (eta squared)
+for scale in subscale_names:
+    model = ols(f'{scale} ~ C({group_col})', data=df).fit()
+    aov = sm.stats.anova_lm(model, typ=2)
+    ss_effect = aov['sum_sq'].iloc[0]
+    ss_total = aov['sum_sq'].sum()
+    eta_sq = ss_effect / ss_total
+    print(f"{scale} partial eta squared: {eta_sq:.3f}")
+
+    n_groups = df[group_col].nunique()
+    nobs = df.shape[0]
+    effect_size = eta_sq ** 0.5  # Cohen's f from eta squared
+    alpha = 0.05
+
+    power = FTestAnovaPower().solve_power(effect_size=effect_size, nobs=nobs, alpha=alpha, k_groups=n_groups)
+    print(f"Power for {scale}: {power:.3f}")
 
 
 # # If significant, run post-hoc ANOVAs
