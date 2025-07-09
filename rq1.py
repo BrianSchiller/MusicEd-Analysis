@@ -102,25 +102,29 @@ for scale in subscale_names:
     print(f"Power for {scale}: {power:.3f}")
 
 
-# # If significant, run post-hoc ANOVAs
-# print("\nPost-hoc ANOVAs:")
-# import statsmodels.api as sm
-# from statsmodels.formula.api import ols
+# If significant, run post-hoc ANOVAs
+print("\nPost-hoc ANOVAs:")
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
 
-# for scale in subscale_names:
-#     model = ols(f'{scale} ~ early_training', data=df).fit()
-#     anova_table = sm.stats.anova_lm(model, typ=2)
-#     print(f"\n{scale} ANOVA:")
-#     print(anova_table)
+for scale in subscale_names:
+    model = ols(f'{scale} ~ early_training', data=df).fit()
+    anova_table = sm.stats.anova_lm(model, typ=2)
+    print(f"\n{scale} ANOVA:")
+    print(anova_table)
 
-# # Effect sizes (eta squared)
-# def eta_squared(aov):
-#     return aov['sum_sq']['early_training'] / (aov['sum_sq']['early_training'] + aov['sum_sq']['Residual'])
+# Effect sizes (eta squared)
+def eta_squared(aov):
+    return aov['sum_sq']['early_training'] / (aov['sum_sq']['early_training'] + aov['sum_sq']['Residual'])
 
-# for scale in subscale_names:
-#     model = ols(f'{scale} ~ early_training', data=df).fit()
-#     aov = sm.stats.anova_lm(model, typ=2)
-#     print(f"{scale} eta squared: {eta_squared(aov):.3f}")
+for scale in subscale_names:
+    model = ols(f'{scale} ~ early_training', data=df).fit()
+    aov = sm.stats.anova_lm(model, typ=2)
+    print(f"{scale} eta squared: {eta_squared(aov):.3f}")
+
+for scale in subscale_names:
+    means = df.groupby(group_col)[scale].mean()
+    print(f"{scale} means:\n{means}\n")
 
 
 

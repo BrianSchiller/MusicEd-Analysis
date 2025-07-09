@@ -102,17 +102,29 @@ for scale in subscale_names:
 
 
 
-# Post-hoc ANOVAs and Tukey HSD
-# print("\nPost-hoc ANOVAs and Tukey HSD (if significant):")
-# for scale in subscale_names:
-#     model = ols(f'{scale} ~ C({group_col})', data=df).fit()
-#     anova_table = sm.stats.anova_lm(model, typ=2)
-#     print(f"\n{scale} ANOVA:")
-#     print(anova_table)
-#     if anova_table['PR(>F)'][0] < 0.05:
-#         print(f"Tukey HSD for {scale}:")
-#         tukey = pairwise_tukeyhsd(df[scale], df[group_col])
-#         print(tukey)
+# If significant, run post-hoc ANOVAs
+print("\nPost-hoc ANOVAs:")
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+for scale in subscale_names:
+    model = ols(f'{scale} ~ robot_exp_group', data=df).fit()
+    anova_table = sm.stats.anova_lm(model, typ=2)
+    print(f"\n{scale} ANOVA:")
+    print(anova_table)
+
+# Effect sizes (eta squared)
+def eta_squared(aov):
+    return aov['sum_sq']['robot_exp_group'] / (aov['sum_sq']['robot_exp_group'] + aov['sum_sq']['Residual'])
+
+for scale in subscale_names:
+    model = ols(f'{scale} ~ robot_exp_group', data=df).fit()
+    aov = sm.stats.anova_lm(model, typ=2)
+    print(f"{scale} eta squared: {eta_squared(aov):.3f}")
+
+for scale in subscale_names:
+    means = df.groupby(group_col)[scale].mean()
+    print(f"{scale} means:\n{means}\n")
 
 
 

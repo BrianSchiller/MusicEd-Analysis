@@ -12,9 +12,9 @@ scales = {
     "sincerity_flexibility": [
         "AT02_05", "AT02_35", "AT02_16", "AT02_01", "AT02_03"
     ],
-    "trust_data_to_parents": [
-        "AT02_02", "AT02_04", "AT02_06", "AT02_09", "AT02_14", "AT02_32"
-    ],
+    # "trust_data_to_parents": [
+    #     "AT02_02", "AT02_04", "AT02_06", "AT02_09", "AT02_14", "AT02_32"
+    # ],
     "data_sharing_third_parties": [
         "AT02_22", "AT02_20"
     ],

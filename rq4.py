@@ -47,8 +47,8 @@ demographic_map = {
     'SD01_08': 'age',
     'SD02': 'gender',
     'SD04': 'education',
-    'SD05': 'musical_education',
-    'RS01_01': 'social_robot_experience'
+    'early_training': 'musical_education',
+    'robot_exp_group': 'social_robot_experience'
 }
 demographics = list(demographic_map.keys())
 
